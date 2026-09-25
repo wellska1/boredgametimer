@@ -18,10 +18,10 @@
         <p>Track turn time like a worker placement board game.</p>
         <button id="toggle-config" class="collapse-btn" aria-label="Toggle setup panel">−</button>
       </div>
-      <section class="config" id="config-section" aria-label="Timer setup">
-        <label for="player-count">Number of timers</label>
+      <section class="config" id="config-section" aria-label="Player setup">
+        <label for="player-count">Number of players</label>
         <div class="config-row">
-          <select id="player-count" aria-label="Number of timers">
+          <select id="player-count" aria-label="Number of players">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
@@ -35,12 +35,8 @@
           </select>
           <button id="apply-count" class="wood-btn secondary">Apply</button>
         </div>
+        <h3 class="order-heading">Player Turn Order</h3>
         <div class="name-fields" id="name-fields" aria-label="Player names"></div>
-        <section class="order-builder" aria-label="Turn order buckets">
-          <h3>Turn Order Buckets</h3>
-          <p>Drag a player token into a turn bucket. On mobile, tap a token then tap a bucket.</p>
-          <div id="turn-buckets" class="turn-buckets"></div>
-        </section>
         <div class="config-help">
           <p>• Click <strong>Start First Turn</strong> to begin or advance to next player</p>
           <p>• Click <strong>Pause/End Game</strong> to pause or resume</p>
