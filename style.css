@@ -326,6 +326,39 @@ th {
   display: none;
 }
 
+.timer-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.timer-btn {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #00000022;
+  transition: transform 0.05s;
+}
+
+.timer-btn:active {
+  transform: translateY(1px);
+}
+
+.pause-btn {
+  background: linear-gradient(170deg, #5fa3d9, #4682b4);
+}
+
+.select-btn {
+  background: linear-gradient(170deg, var(--wood-light), var(--wood));
+}
+
 @media (min-width: 760px) {
   .app-shell {
     padding: 22px 20px 40px;

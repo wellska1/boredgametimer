@@ -24,7 +24,9 @@ const meepleColors = [
 let players = [];
 let activeIndex = -1;
 let running = false;
+let paused = false;
 let activeStartMs = 0;
+let pausedAtMs = 0;
 let tickHandle = 0;
 let turnCount = 0;
 
@@ -108,7 +110,8 @@ function updateStatus(message) {
 
 function elapsedForPlayer(index) {
   if (!running || activeIndex !== index) return 0;
-  return Math.max(0, Date.now() - activeStartMs);
+  const now = paused ? pausedAtMs : Date.now();
+  return Math.max(0, now - activeStartMs);
 }
 
 function playerAverageMs(player) {
@@ -122,6 +125,13 @@ function renderTimers() {
     const liveTotal = p.totalMs + elapsedForPlayer(idx);
     const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--.-';
     const name = escapeHtml(p.name);
+    let actionButton = '';
+    if (isActive) {
+      const pauseText = paused ? 'Resume' : 'Pause';
+      actionButton = `<button class="timer-btn pause-btn" data-action="pause">${pauseText}</button>`;
+    } else if (running) {
+      actionButton = `<button class="timer-btn select-btn" data-action="select" data-index="${idx}">Select</button>`;
+    }
     return `
       <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};">
         <div class="timer-row">
@@ -132,17 +142,43 @@ function renderTimers() {
           <span>Turns: ${p.turns}</span>
           <span>Avg: ${avg}</span>
         </div>
+        ${actionButton ? `<div class="timer-actions">${actionButton}</div>` : ''}
       </article>
     `;
   }).join('');
 
   ui.timers.innerHTML = cards;
+  attachTimerEventListeners();
+}
+
+function attachTimerEventListeners() {
+  ui.timers.querySelectorAll('[data-action="pause"]').forEach((btn) => {
+    btn.addEventListener('click', pauseResumeTimers);
+  });
+  ui.timers.querySelectorAll('[data-action="select"]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const index = Number(e.target.dataset.index);
+      selectTimer(index);
+    });
+  });
+}
+
+function selectTimer(index) {
+  if (!running || index < 0 || index >= players.length || index === activeIndex) return;
+  stopCurrentTimer();
+  activeIndex = index;
+  activeStartMs = Date.now();
+  paused = false;
+  updateStatus(`Turn running: ${players[activeIndex].name}`);
+  renderTimers();
 }
 
 function resetRunningState() {
   running = false;
+  paused = false;
   activeIndex = -1;
   activeStartMs = 0;
+  pausedAtMs = 0;
   ui.next.textContent = 'Start First Turn';
 }
 
@@ -154,12 +190,32 @@ function stopCurrentTimer() {
   players[activeIndex].turns += 1;
 }
 
+function pauseResumeTimers() {
+  if (!running) return;
+
+  if (paused) {
+    // Resume
+    const elapsed = Math.max(0, pausedAtMs - activeStartMs);
+    activeStartMs = Date.now() - elapsed;
+    pausedAtMs = 0;
+    paused = false;
+    updateStatus(`Turn resumed: ${players[activeIndex].name}`);
+  } else {
+    // Pause
+    pausedAtMs = Date.now();
+    paused = true;
+    updateStatus(`Turn paused: ${players[activeIndex].name}`);
+  }
+  renderTimers();
+}
+
 function advanceTurn() {
   if (players.length === 0) return;
 
   if (!running) {
     activeIndex = 0;
     running = true;
+    paused = false;
     activeStartMs = Date.now();
     updateStatus(`Turn running: ${players[activeIndex].name}`);
     ui.next.textContent = 'End Turn / Next Player';
@@ -171,6 +227,7 @@ function advanceTurn() {
   stopCurrentTimer();
   activeIndex = (activeIndex + 1) % players.length;
   activeStartMs = Date.now();
+  paused = false;
   turnCount += 1;
   updateStatus(`Turn running: ${players[activeIndex].name}`);
   renderTimers();
