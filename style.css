@@ -414,6 +414,21 @@ th {
   font-weight: 800;
 }
 
+.turn-log {
+  margin-top: 14px;
+  background: #f5efe2;
+  border-radius: 18px;
+  border: 3px solid #ddbc84;
+  padding: 12px;
+}
+
+.turn-log h2 {
+  margin: 0 0 12px 0;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 24px;
+  color: #564e40;
+}
+
 .hidden {
   display: none;
 }

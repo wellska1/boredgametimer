@@ -31,6 +31,7 @@ let activeStartMs = 0;
 let pausedAtMs = 0;
 let tickHandle = 0;
 let turnCount = 0;
+let turnHistory = [];
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -166,6 +167,7 @@ function resetRunningState() {
   activeStartMs = 0;
   pausedAtMs = 0;
   ui.next.textContent = 'Start First Turn';
+  turnHistory = [];
 }
 
 function stopCurrentTimer() {
@@ -174,6 +176,12 @@ function stopCurrentTimer() {
   const elapsed = Math.max(0, now - activeStartMs);
   players[activeIndex].totalMs += elapsed;
   players[activeIndex].turns += 1;
+  // Log the turn
+  turnHistory.push({
+    playerName: players[activeIndex].name,
+    turnNumber: players[activeIndex].turns,
+    timeMs: elapsed
+  });
 }
 
 function pauseResumeTimers() {
@@ -207,6 +215,9 @@ function advanceTurn() {
     updateStatus(`Turn running: ${players[activeIndex].name}`);
     ui.next.textContent = 'End Turn / Next Player';
     turnCount += 1;
+    // Auto-collapse the config panel
+    ui.configSection.classList.add('collapsed');
+    ui.toggleConfig.textContent = '+';
     renderTimers();
     renderResults();
     return;
@@ -279,10 +290,21 @@ function renderResults() {
     `;
   }).join('');
 
-  ui.results.classList.remove('hidden');
+  renderTurnLog();
 }
 
-function rebuildWithCount() {
+function renderTurnLog() {
+  const turnLogBody = document.getElementById('turn-log-body');
+  if (!turnLogBody || turnHistory.length === 0) return;
+  
+  turnLogBody.innerHTML = turnHistory.map((turn, idx) => `
+    <tr>
+      <td>${turn.playerName}</td>
+      <td>${turn.turnNumber}</td>
+      <td>${formatMs(turn.timeMs)}</td>
+    </tr>
+  `).join('');
+}
   const count = Number(ui.count.value);
   const previousNames = players.map((player) => player.name);
   createPlayers(count, previousNames);
