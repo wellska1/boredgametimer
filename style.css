@@ -191,6 +191,7 @@ body {
 
 .wood-btn.primary {
   background: linear-gradient(170deg, #5ed4a0, var(--active));
+  min-height: 88px;
 }
 
 .wood-btn.danger {
