@@ -252,6 +252,8 @@ function pctDelta(playerAvg, groupAvg) {
 }
 
 function renderResults() {
+  ui.results.classList.remove('hidden');
+
   const totalAll = players.reduce((sum, p) => sum + p.totalMs, 0);
   const turnsAll = players.reduce((sum, p) => sum + p.turns, 0);
   const groupAvg = turnsAll > 0 ? totalAll / turnsAll : 0;
@@ -314,10 +316,10 @@ function rebuildWithCount() {
   createPlayers(count, previousNames);
   resetRunningState();
   turnCount = 0;
-  ui.results.classList.add('hidden');
   updateStatus('Ready. Press Start First Turn.');
   renderNameFields();
   renderTimers();
+  renderResults();
 }
 
 function startTick() {
