@@ -132,11 +132,15 @@ function renderTimers() {
     } else if (running) {
       actionButton = `<button class="timer-btn select-btn" data-action="select" data-index="${idx}">Select</button>`;
     }
+    const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
       <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};">
         <div class="timer-row">
           <span class="player-chip"><span class="meeple" aria-hidden="true"></span>${name}</span>
-          <span class="live-time">${formatMs(liveTotal)}</span>
+          <div class="timer-info">
+            ${isActive ? `<div class="current-turn">Turn ${currentTurn}</div>` : ''}
+            <span class="live-time">${formatMs(liveTotal)}</span>
+          </div>
         </div>
         <div class="substats">
           <span>Turns: ${p.turns}</span>
