@@ -144,25 +144,31 @@ select {
 }
 
 .name-row-actions {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
   gap: 6px;
 }
 
 .order-btn {
-  border: 1px solid #c7af80;
-  border-radius: 8px;
+  border: 0;
+  border-radius: 10px;
   min-height: 34px;
-  padding: 0 9px;
-  background: #f7ebd5;
-  color: #4f4a3f;
+  padding: 0 10px;
+  background: linear-gradient(170deg, var(--wood-light), var(--wood));
+  color: #fff;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.2px;
+  box-shadow: 0 2px 0 #0000002b;
+  white-space: nowrap;
+}
+
+.order-btn:active {
+  transform: translateY(1px);
 }
 
 .order-btn:disabled {
   opacity: 0.45;
+  box-shadow: none;
 }
 
 .name-row label {
@@ -631,9 +637,5 @@ th {
 
   .name-row {
     grid-template-columns: 78px minmax(0, 1fr) auto;
-  }
-
-  .name-row-actions {
-    grid-template-columns: 1fr 1fr;
   }
 }
