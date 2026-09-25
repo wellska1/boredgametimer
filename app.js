@@ -320,15 +320,29 @@ function startTick() {
   }, 100);
 }
 
+// Debug: Check if elements exist
+console.log('Initializing...');
+console.log('Next button element:', ui.next);
+console.log('Next button ID:', ui.next?.id);
+console.log('Next button HTML:', ui.next?.outerHTML);
+
+// Attach event listeners
 ui.apply.addEventListener('click', rebuildWithCount);
-ui.next.addEventListener('click', advanceTurn);
+ui.next.addEventListener('click', function(e) {
+  console.log('Next button clicked!', e);
+  advanceTurn();
+});
 ui.endAll.addEventListener('click', endAllTimers);
 ui.toggleConfig.addEventListener('click', () => {
   ui.configSection.classList.toggle('collapsed');
   ui.toggleConfig.textContent = ui.configSection.classList.contains('collapsed') ? '+' : '−';
 });
 
+console.log('Event listeners attached');
+
 createPlayers(Number(ui.count.value));
 renderNameFields();
 renderTimers();
 startTick();
+
+console.log('Initialization complete');
