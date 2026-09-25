@@ -40,6 +40,7 @@ let holdStartY = 0;
 let reorderActive = false;
 let dragGhost = null;
 let dropIndicator = null;
+let timersSelectionGuarded = false;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -179,6 +180,13 @@ function reorderPlayers(fromIndex, toIndex) {
 function wireTimerReorder() {
   const cards = [...ui.timers.querySelectorAll('.timer-card')];
   if (cards.length === 0) return;
+
+  if (!timersSelectionGuarded) {
+    ui.timers.addEventListener('selectstart', (event) => {
+      event.preventDefault();
+    });
+    timersSelectionGuarded = true;
+  }
 
   const ensureDropIndicator = () => {
     if (dropIndicator) return dropIndicator;

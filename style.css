@@ -259,6 +259,12 @@ select {
   gap: 10px;
 }
 
+.timers,
+.timers * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 .timer-card {
   position: relative;
   border: 2px solid #dec18f;
