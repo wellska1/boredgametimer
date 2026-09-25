@@ -252,24 +252,14 @@ body {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
-.timer-card[draggable="true"] {
-  cursor: grab;
-}
-
-.timer-card[draggable="false"] {
-  cursor: default;
-}
-
-.mobile-reorder-handle {
-  display: none;
-  min-width: 22px;
-  text-align: center;
-  color: #7f725f;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1;
+.timer-card.pressing {
+  box-shadow: 0 0 0 2px #5fa3d955;
 }
 
 .timer-card.dragging {
@@ -348,41 +338,6 @@ body {
   color: #4f4a3f;
   font-weight: 700;
   flex-wrap: wrap;
-}
-
-.reorder-controls {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.reorder-btn {
-  border: 1px solid #c7af80;
-  border-radius: 9px;
-  min-height: 36px;
-  padding: 0 8px;
-  background: #f7ebd5;
-  color: #4f4a3f;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-}
-
-.reorder-btn:active {
-  transform: translateY(1px);
-}
-
-.reorder-btn:disabled {
-  opacity: 0.45;
-}
-
-@media (pointer: coarse) {
-  .mobile-reorder-handle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
 }
 
 .results {

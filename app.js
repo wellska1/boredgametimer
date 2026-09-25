@@ -32,8 +32,12 @@ let pausedAtMs = 0;
 let tickHandle = 0;
 let turnCount = 0;
 let turnHistory = [];
-let dragSourceIndex = -1;
-const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
+let longPressTimer = 0;
+let holdSourceIndex = -1;
+let holdTargetIndex = -1;
+let holdStartX = 0;
+let holdStartY = 0;
+let reorderActive = false;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -131,12 +135,10 @@ function renderTimers() {
     const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--.-';
     const name = escapeHtml(p.name);
     const currentTurn = isActive ? p.turns + 1 : p.turns;
-    const dragTitle = isTouchDevice ? '' : 'Drag to reorder turn order';
     return `
-      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" draggable="${isTouchDevice ? 'false' : 'true'}" title="${dragTitle}">
+      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" title="Hold for 1 second to reorder turn order">
         <div class="timer-row">
           <span class="player-chip"><span class="meeple" aria-hidden="true"></span>${name}</span>
-          <span class="mobile-reorder-handle" aria-hidden="true">↕</span>
           <div class="timer-info">
             ${isActive ? `<div class="current-turn">Turn ${currentTurn}</div>` : ''}
             <span class="live-time">${formatMs(liveTotal)}</span>
@@ -146,17 +148,12 @@ function renderTimers() {
           <span>Turns: ${p.turns}</span>
           <span>Avg: ${avg}</span>
         </div>
-        <div class="reorder-controls" aria-label="Reorder ${name}">
-          <button type="button" class="reorder-btn" data-move="up" data-index="${idx}" ${idx === 0 ? 'disabled' : ''} aria-label="Move ${name} up in turn order">Move Up</button>
-          <button type="button" class="reorder-btn" data-move="down" data-index="${idx}" ${idx === players.length - 1 ? 'disabled' : ''} aria-label="Move ${name} down in turn order">Move Down</button>
-        </div>
       </article>
     `;
   }).join('');
 
   ui.timers.innerHTML = cards;
   wireTimerReorder();
-  wireReorderButtons();
 }
 
 function reorderPlayers(fromIndex, toIndex) {
@@ -178,70 +175,113 @@ function reorderPlayers(fromIndex, toIndex) {
 }
 
 function wireTimerReorder() {
-  if (isTouchDevice) return;
-
   const cards = [...ui.timers.querySelectorAll('.timer-card')];
   if (cards.length === 0) return;
 
+  const clearLongPressTimer = () => {
+    if (longPressTimer) {
+      window.clearTimeout(longPressTimer);
+      longPressTimer = 0;
+    }
+  };
+
   const clearDragClasses = () => {
     cards.forEach((card) => {
+      card.classList.remove('pressing');
       card.classList.remove('dragging');
       card.classList.remove('drag-over');
     });
   };
 
+  const clearState = () => {
+    clearLongPressTimer();
+    clearDragClasses();
+    holdSourceIndex = -1;
+    holdTargetIndex = -1;
+    holdStartX = 0;
+    holdStartY = 0;
+    reorderActive = false;
+  };
+
+  const removeDocumentListeners = () => {
+    document.removeEventListener('pointermove', onPointerMove);
+    document.removeEventListener('pointerup', onPointerUp);
+    document.removeEventListener('pointercancel', onPointerCancel);
+  };
+
+  const highlightTargetAtPoint = (x, y) => {
+    const targetCard = document.elementFromPoint(x, y)?.closest('.timer-card');
+    clearDragClasses();
+
+    const sourceCard = ui.timers.querySelector(`.timer-card[data-index="${holdSourceIndex}"]`);
+    if (sourceCard) {
+      sourceCard.classList.add(reorderActive ? 'dragging' : 'pressing');
+    }
+
+    if (!targetCard) return;
+    targetCard.classList.add('drag-over');
+    holdTargetIndex = Number(targetCard.dataset.index);
+  };
+
+  const onPointerMove = (event) => {
+    if (holdSourceIndex < 0) return;
+
+    if (!reorderActive) {
+      const movedX = Math.abs(event.clientX - holdStartX);
+      const movedY = Math.abs(event.clientY - holdStartY);
+      if (movedX > 10 || movedY > 10) {
+        removeDocumentListeners();
+        clearState();
+      }
+      return;
+    }
+
+    event.preventDefault();
+    highlightTargetAtPoint(event.clientX, event.clientY);
+  };
+
+  const finishReorder = () => {
+    removeDocumentListeners();
+    const fromIndex = holdSourceIndex;
+    const toIndex = holdTargetIndex;
+    const shouldReorder = reorderActive && fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex;
+    clearState();
+    if (shouldReorder) {
+      reorderPlayers(fromIndex, toIndex);
+    }
+  };
+
+  const onPointerUp = () => {
+    finishReorder();
+  };
+
+  const onPointerCancel = () => {
+    finishReorder();
+  };
+
   cards.forEach((card) => {
-    card.addEventListener('dragstart', (event) => {
-      dragSourceIndex = Number(card.dataset.index);
-      card.classList.add('dragging');
-      if (event.dataTransfer) {
-        event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', String(dragSourceIndex));
-      }
-    });
+    card.addEventListener('pointerdown', (event) => {
+      if (event.button !== undefined && event.button !== 0) return;
 
-    card.addEventListener('dragover', (event) => {
-      event.preventDefault();
-      card.classList.add('drag-over');
-      if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = 'move';
-      }
-    });
+      removeDocumentListeners();
+      clearState();
 
-    card.addEventListener('dragleave', () => {
-      card.classList.remove('drag-over');
-    });
+      holdSourceIndex = Number(card.dataset.index);
+      holdTargetIndex = holdSourceIndex;
+      holdStartX = event.clientX;
+      holdStartY = event.clientY;
+      card.classList.add('pressing');
 
-    card.addEventListener('drop', (event) => {
-      event.preventDefault();
-      const targetIndex = Number(card.dataset.index);
-      const sourceIndex = dragSourceIndex >= 0
-        ? dragSourceIndex
-        : Number(event.dataTransfer?.getData('text/plain'));
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerUp);
+      document.addEventListener('pointercancel', onPointerCancel);
 
-      clearDragClasses();
-      dragSourceIndex = -1;
-
-      if (!Number.isInteger(sourceIndex) || !Number.isInteger(targetIndex)) return;
-      reorderPlayers(sourceIndex, targetIndex);
-    });
-
-    card.addEventListener('dragend', () => {
-      clearDragClasses();
-      dragSourceIndex = -1;
-    });
-  });
-}
-
-function wireReorderButtons() {
-  const reorderButtons = [...ui.timers.querySelectorAll('.reorder-btn')];
-  if (reorderButtons.length === 0) return;
-
-  reorderButtons.forEach((button) => {
-    button.addEventListener('click', () => {
-      const index = Number(button.dataset.index);
-      const direction = button.dataset.move === 'up' ? -1 : 1;
-      reorderPlayers(index, index + direction);
+      longPressTimer = window.setTimeout(() => {
+        reorderActive = true;
+        card.classList.remove('pressing');
+        card.classList.add('dragging');
+        updateStatus('Reorder mode: drag to another player and release.');
+      }, 1000);
     });
   });
 }
