@@ -192,6 +192,7 @@ body {
 .wood-btn.primary {
   background: linear-gradient(170deg, #5ed4a0, var(--active));
   min-height: 88px;
+  font-size: clamp(15px, 2.5vw, 18px);
 }
 
 .wood-btn.danger {
@@ -210,6 +211,10 @@ body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
+}
+
+.controls:last-of-type {
+  margin-top: 16px;
 }
 
 .status {
