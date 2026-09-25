@@ -122,7 +122,6 @@ function playerAverageMs(player) {
 }
 
 function renderTimers() {
-  console.log('renderTimers called - running:', running, 'paused:', paused);
   const cards = players.map((p, idx) => {
     const isActive = running && idx === activeIndex;
     const liveTotal = p.totalMs + elapsedForPlayer(idx);
@@ -161,16 +160,13 @@ function renderTimers() {
 function attachTimerEventListeners() {
   const pauseBtns = ui.timers.querySelectorAll('[data-action="pause"]');
   const selectBtns = ui.timers.querySelectorAll('[data-action="select"]');
-  console.log('Attaching listeners - Pause buttons found:', pauseBtns.length, 'Select buttons found:', selectBtns.length);
   
   pauseBtns.forEach((btn) => {
     btn.addEventListener('touchend', function(e) {
       e.preventDefault();
-      console.log('Pause button touched');
       pauseResumeTimers();
     });
     btn.addEventListener('click', function(e) {
-      console.log('Pause button clicked');
       pauseResumeTimers();
     });
   });
@@ -178,12 +174,10 @@ function attachTimerEventListeners() {
   selectBtns.forEach((btn) => {
     btn.addEventListener('touchend', function(e) {
       e.preventDefault();
-      console.log('Select button touched for index:', e.target.dataset.index);
       const index = Number(e.target.dataset.index);
       selectTimer(index);
     });
     btn.addEventListener('click', (e) => {
-      console.log('Select button clicked for index:', e.target.dataset.index);
       const index = Number(e.target.dataset.index);
       selectTimer(index);
     });
@@ -198,6 +192,7 @@ function selectTimer(index) {
   paused = false;
   updateStatus(`Turn running: ${players[activeIndex].name}`);
   renderTimers();
+  renderResults();
 }
 
 function resetRunningState() {
@@ -234,6 +229,7 @@ function pauseResumeTimers() {
     updateStatus(`Turn paused: ${players[activeIndex].name}`);
   }
   renderTimers();
+  renderResults();
 }
 
 function advanceTurn() {
@@ -248,6 +244,7 @@ function advanceTurn() {
     ui.next.textContent = 'End Turn / Next Player';
     turnCount += 1;
     renderTimers();
+    renderResults();
     return;
   }
 
@@ -258,6 +255,7 @@ function advanceTurn() {
   turnCount += 1;
   updateStatus(`Turn running: ${players[activeIndex].name}`);
   renderTimers();
+  renderResults();
 }
 
 function endAllTimers() {
@@ -341,31 +339,22 @@ function startTick() {
   }, 100);
 }
 
-// Debug: Check if elements exist
-console.log('Initializing...');
-console.log('Next button element:', ui.next);
-console.log('Next button ID:', ui.next?.id);
-console.log('Next button HTML:', ui.next?.outerHTML);
-
 // Attach event listeners
 ui.apply.addEventListener('click', rebuildWithCount);
 
 ui.next.addEventListener('touchend', function(e) {
   e.preventDefault();
-  console.log('Next button touched');
   advanceTurn();
 });
 ui.next.addEventListener('click', function(e) {
-  console.log('Next button clicked!', e);
   advanceTurn();
 });
 
 ui.endAll.addEventListener('touchend', function(e) {
   e.preventDefault();
-  console.log('End All touched');
-  endAllTimers();
+  pauseResumeTimers();
 });
-ui.endAll.addEventListener('click', endAllTimers);
+ui.endAll.addEventListener('click', pauseResumeTimers);
 
 ui.toggleConfig.addEventListener('touchend', function(e) {
   e.preventDefault();
@@ -377,11 +366,9 @@ ui.toggleConfig.addEventListener('click', () => {
   ui.toggleConfig.textContent = ui.configSection.classList.contains('collapsed') ? '+' : '−';
 });
 
-console.log('Event listeners attached');
-
+// Initialize the app
 createPlayers(Number(ui.count.value));
 renderNameFields();
 renderTimers();
+renderResults();
 startTick();
-
-console.log('Initialization complete');
