@@ -76,6 +76,11 @@ body {
   align-items: center;
   justify-content: center;
   line-height: 1;
+  z-index: 10;
+  pointer-events: auto;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .config {
@@ -179,6 +184,9 @@ body {
   letter-spacing: 0.2px;
   color: #fff;
   box-shadow: 0 4px 0 #00000033;
+  pointer-events: auto;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 .wood-btn:active {
