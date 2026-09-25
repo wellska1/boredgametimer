@@ -215,9 +215,6 @@ function advanceTurn() {
     updateStatus(`Turn running: ${players[activeIndex].name}`);
     ui.next.textContent = 'End Turn / Next Player';
     turnCount += 1;
-    // Auto-collapse the config panel
-    ui.configSection.classList.add('collapsed');
-    ui.toggleConfig.textContent = '+';
     renderTimers();
     renderResults();
     return;
