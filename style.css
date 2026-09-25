@@ -444,6 +444,38 @@ th {
   color: #564e40;
 }
 
+.tip-jar {
+  margin-top: 14px;
+  background: #f5efe2;
+  border-radius: 18px;
+  border: 3px solid #ddbc84;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.tip-jar h2 {
+  margin: 0;
+  font-family: "Baloo 2", sans-serif;
+  font-size: 24px;
+  color: #564e40;
+}
+
+.tip-jar p {
+  margin: 0;
+  color: #5a4d3c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tip-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: 100%;
+}
+
 .hidden {
   display: none;
 }
@@ -497,7 +529,9 @@ th {
 
   .board-zone,
   .results,
-  .hero {
+  .hero,
+  .tip-jar,
+  .turn-log {
     padding: 18px;
   }
 
