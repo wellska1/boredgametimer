@@ -292,7 +292,12 @@ function renderResults() {
 
 function renderTurnLog() {
   const turnLogBody = document.getElementById('turn-log-body');
-  if (!turnLogBody || turnHistory.length === 0) return;
+  if (!turnLogBody) return;
+
+  if (turnHistory.length === 0) {
+    turnLogBody.innerHTML = '';
+    return;
+  }
   
   turnLogBody.innerHTML = turnHistory.map((turn, idx) => `
     <tr>
@@ -302,6 +307,8 @@ function renderTurnLog() {
     </tr>
   `).join('');
 }
+
+function rebuildWithCount() {
   const count = Number(ui.count.value);
   const previousNames = players.map((player) => player.name);
   createPlayers(count, previousNames);
