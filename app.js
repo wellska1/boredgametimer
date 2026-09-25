@@ -33,6 +33,7 @@ let tickHandle = 0;
 let turnCount = 0;
 let turnHistory = [];
 let dragSourceIndex = -1;
+const isTouchDevice = window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -130,10 +131,12 @@ function renderTimers() {
     const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--.-';
     const name = escapeHtml(p.name);
     const currentTurn = isActive ? p.turns + 1 : p.turns;
+    const dragTitle = isTouchDevice ? '' : 'Drag to reorder turn order';
     return `
-      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" draggable="true" title="Drag to reorder turn order">
+      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" draggable="${isTouchDevice ? 'false' : 'true'}" title="${dragTitle}">
         <div class="timer-row">
           <span class="player-chip"><span class="meeple" aria-hidden="true"></span>${name}</span>
+          <span class="mobile-reorder-handle" aria-hidden="true">↕</span>
           <div class="timer-info">
             ${isActive ? `<div class="current-turn">Turn ${currentTurn}</div>` : ''}
             <span class="live-time">${formatMs(liveTotal)}</span>
@@ -143,12 +146,17 @@ function renderTimers() {
           <span>Turns: ${p.turns}</span>
           <span>Avg: ${avg}</span>
         </div>
+        <div class="reorder-controls" aria-label="Reorder ${name}">
+          <button type="button" class="reorder-btn" data-move="up" data-index="${idx}" ${idx === 0 ? 'disabled' : ''} aria-label="Move ${name} up in turn order">Move Up</button>
+          <button type="button" class="reorder-btn" data-move="down" data-index="${idx}" ${idx === players.length - 1 ? 'disabled' : ''} aria-label="Move ${name} down in turn order">Move Down</button>
+        </div>
       </article>
     `;
   }).join('');
 
   ui.timers.innerHTML = cards;
   wireTimerReorder();
+  wireReorderButtons();
 }
 
 function reorderPlayers(fromIndex, toIndex) {
@@ -170,6 +178,8 @@ function reorderPlayers(fromIndex, toIndex) {
 }
 
 function wireTimerReorder() {
+  if (isTouchDevice) return;
+
   const cards = [...ui.timers.querySelectorAll('.timer-card')];
   if (cards.length === 0) return;
 
@@ -219,6 +229,19 @@ function wireTimerReorder() {
     card.addEventListener('dragend', () => {
       clearDragClasses();
       dragSourceIndex = -1;
+    });
+  });
+}
+
+function wireReorderButtons() {
+  const reorderButtons = [...ui.timers.querySelectorAll('.reorder-btn')];
+  if (reorderButtons.length === 0) return;
+
+  reorderButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      const index = Number(button.dataset.index);
+      const direction = button.dataset.move === 'up' ? -1 : 1;
+      reorderPlayers(index, index + direction);
     });
   });
 }
