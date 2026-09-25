@@ -127,13 +127,6 @@ function renderTimers() {
     const liveTotal = p.totalMs + elapsedForPlayer(idx);
     const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--.-';
     const name = escapeHtml(p.name);
-    let actionButton = '';
-    if (isActive) {
-      const pauseText = paused ? 'Resume' : 'Pause';
-      actionButton = `<button class="timer-btn pause-btn" data-action="pause">${pauseText}</button>`;
-    } else if (running) {
-      actionButton = `<button class="timer-btn select-btn" data-action="select" data-index="${idx}">Start Timer</button>`;
-    }
     const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
       <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};">
@@ -148,40 +141,11 @@ function renderTimers() {
           <span>Turns: ${p.turns}</span>
           <span>Avg: ${avg}</span>
         </div>
-        ${actionButton ? `<div class="timer-actions">${actionButton}</div>` : ''}
       </article>
     `;
   }).join('');
 
   ui.timers.innerHTML = cards;
-  attachTimerEventListeners();
-}
-
-function attachTimerEventListeners() {
-  const pauseBtns = ui.timers.querySelectorAll('[data-action="pause"]');
-  const selectBtns = ui.timers.querySelectorAll('[data-action="select"]');
-  
-  pauseBtns.forEach((btn) => {
-    btn.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      pauseResumeTimers();
-    });
-    btn.addEventListener('click', function(e) {
-      pauseResumeTimers();
-    });
-  });
-  
-  selectBtns.forEach((btn) => {
-    btn.addEventListener('touchend', function(e) {
-      e.preventDefault();
-      const index = Number(e.target.dataset.index);
-      selectTimer(index);
-    });
-    btn.addEventListener('click', (e) => {
-      const index = Number(e.target.dataset.index);
-      selectTimer(index);
-    });
-  });
 }
 
 function selectTimer(index) {
