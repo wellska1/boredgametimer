@@ -185,9 +185,12 @@ body {
   transform: translateY(1px);
 }
 
-.wood-btn.primary,
 .wood-btn.secondary {
   background: linear-gradient(170deg, var(--wood-light), var(--wood));
+}
+
+.wood-btn.primary {
+  background: linear-gradient(170deg, #5ed4a0, var(--active));
 }
 
 .wood-btn.danger {

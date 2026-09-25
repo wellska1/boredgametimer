@@ -132,7 +132,7 @@ function renderTimers() {
       const pauseText = paused ? 'Resume' : 'Pause';
       actionButton = `<button class="timer-btn pause-btn" data-action="pause">${pauseText}</button>`;
     } else if (running) {
-      actionButton = `<button class="timer-btn select-btn" data-action="select" data-index="${idx}">Select</button>`;
+      actionButton = `<button class="timer-btn select-btn" data-action="select" data-index="${idx}">Start Timer</button>`;
     }
     const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
