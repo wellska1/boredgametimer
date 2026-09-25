@@ -122,6 +122,7 @@ function playerAverageMs(player) {
 }
 
 function renderTimers() {
+  console.log('renderTimers called - running:', running, 'paused:', paused);
   const cards = players.map((p, idx) => {
     const isActive = running && idx === activeIndex;
     const liveTotal = p.totalMs + elapsedForPlayer(idx);
@@ -158,11 +159,20 @@ function renderTimers() {
 }
 
 function attachTimerEventListeners() {
-  ui.timers.querySelectorAll('[data-action="pause"]').forEach((btn) => {
-    btn.addEventListener('click', pauseResumeTimers);
+  const pauseBtns = ui.timers.querySelectorAll('[data-action="pause"]');
+  const selectBtns = ui.timers.querySelectorAll('[data-action="select"]');
+  console.log('Attaching listeners - Pause buttons found:', pauseBtns.length, 'Select buttons found:', selectBtns.length);
+  
+  pauseBtns.forEach((btn) => {
+    btn.addEventListener('click', function(e) {
+      console.log('Pause button clicked');
+      pauseResumeTimers();
+    });
   });
-  ui.timers.querySelectorAll('[data-action="select"]').forEach((btn) => {
+  
+  selectBtns.forEach((btn) => {
     btn.addEventListener('click', (e) => {
+      console.log('Select button clicked for index:', e.target.dataset.index);
       const index = Number(e.target.dataset.index);
       selectTimer(index);
     });

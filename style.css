@@ -420,7 +420,6 @@ th {
 }
 
 .timer-btn {
-  flex: 1;
   border: 0;
   border-radius: 8px;
   min-height: 36px;
@@ -432,6 +431,9 @@ th {
   cursor: pointer;
   box-shadow: 0 2px 0 #00000022;
   transition: transform 0.05s;
+  width: 100%;
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .timer-btn:active {
