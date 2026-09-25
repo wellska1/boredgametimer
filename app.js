@@ -113,10 +113,17 @@ function renderNameFields() {
 
 function formatMs(ms) {
   const totalSeconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
   const tenths = Math.floor((ms % 1000) / 100);
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+  }
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  return `${String(totalMinutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
 }
 
 function escapeHtml(value) {
@@ -147,7 +154,7 @@ function renderTimers() {
   const cards = players.map((p, idx) => {
     const isActive = running && idx === activeIndex;
     const liveTotal = p.totalMs + elapsedForPlayer(idx);
-    const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--.-';
+    const avg = p.turns > 0 ? formatMs(playerAverageMs(p)) : '--:--:--.-';
     const name = escapeHtml(p.name);
     const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
@@ -531,7 +538,7 @@ function renderResults() {
         <td>${escapeHtml(p.name)}</td>
         <td>${formatMs(p.totalMs)}</td>
         <td>${p.turns}</td>
-        <td>${p.turns > 0 ? formatMs(avg) : '--:--.-'}</td>
+        <td>${p.turns > 0 ? formatMs(avg) : '--:--:--.-'}</td>
         <td class="${p.turns > 0 ? cls : ''}">${p.turns > 0 ? deltaLabel : 'n/a'}</td>
       </tr>
     `;
