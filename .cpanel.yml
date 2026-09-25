@@ -2,7 +2,6 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/borerogu/public_html/
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -f index.html $DEPLOYPATH
-    - /bin/cp -f style.css $DEPLOYPATH
-    - /bin/cp -f app.js $DEPLOYPATH
+    - /bin/cp index.html $DEPLOYPATH
+    - /bin/cp style.css $DEPLOYPATH
+    - /bin/cp app.js $DEPLOYPATH
