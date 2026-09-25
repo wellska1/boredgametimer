@@ -32,6 +32,7 @@ let pausedAtMs = 0;
 let tickHandle = 0;
 let turnCount = 0;
 let turnHistory = [];
+let dragSourceIndex = -1;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -130,7 +131,7 @@ function renderTimers() {
     const name = escapeHtml(p.name);
     const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
-      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};">
+      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" draggable="true" title="Drag to reorder turn order">
         <div class="timer-row">
           <span class="player-chip"><span class="meeple" aria-hidden="true"></span>${name}</span>
           <div class="timer-info">
@@ -147,6 +148,79 @@ function renderTimers() {
   }).join('');
 
   ui.timers.innerHTML = cards;
+  wireTimerReorder();
+}
+
+function reorderPlayers(fromIndex, toIndex) {
+  if (fromIndex === toIndex) return;
+  if (fromIndex < 0 || toIndex < 0) return;
+  if (fromIndex >= players.length || toIndex >= players.length) return;
+
+  const activePlayerId = running && activeIndex >= 0 ? players[activeIndex].id : null;
+  const [moved] = players.splice(fromIndex, 1);
+  players.splice(toIndex, 0, moved);
+
+  if (activePlayerId !== null) {
+    activeIndex = players.findIndex((player) => player.id === activePlayerId);
+  }
+
+  renderTimers();
+  renderResults();
+  updateStatus(`Turn order updated. ${running ? `Current turn: ${players[activeIndex].name}` : 'Ready. Press Start First Turn.'}`);
+}
+
+function wireTimerReorder() {
+  const cards = [...ui.timers.querySelectorAll('.timer-card')];
+  if (cards.length === 0) return;
+
+  const clearDragClasses = () => {
+    cards.forEach((card) => {
+      card.classList.remove('dragging');
+      card.classList.remove('drag-over');
+    });
+  };
+
+  cards.forEach((card) => {
+    card.addEventListener('dragstart', (event) => {
+      dragSourceIndex = Number(card.dataset.index);
+      card.classList.add('dragging');
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(dragSourceIndex));
+      }
+    });
+
+    card.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      card.classList.add('drag-over');
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+    });
+
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const targetIndex = Number(card.dataset.index);
+      const sourceIndex = dragSourceIndex >= 0
+        ? dragSourceIndex
+        : Number(event.dataTransfer?.getData('text/plain'));
+
+      clearDragClasses();
+      dragSourceIndex = -1;
+
+      if (!Number.isInteger(sourceIndex) || !Number.isInteger(targetIndex)) return;
+      reorderPlayers(sourceIndex, targetIndex);
+    });
+
+    card.addEventListener('dragend', () => {
+      clearDragClasses();
+      dragSourceIndex = -1;
+    });
+  });
 }
 
 function selectTimer(index) {

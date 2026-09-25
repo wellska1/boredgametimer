@@ -254,6 +254,20 @@ body {
   flex-direction: column;
 }
 
+.timer-card[draggable="true"] {
+  cursor: grab;
+}
+
+.timer-card.dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+
+.timer-card.drag-over {
+  border-color: #5fa3d9;
+  box-shadow: 0 0 0 2px #5fa3d944;
+}
+
 .timer-card.active {
   border-color: #47b783;
   box-shadow: 0 0 0 2px #47b78333;
