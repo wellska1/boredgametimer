@@ -149,10 +149,16 @@ select {
 }
 
 .order-btn {
+  appearance: none;
+  -webkit-appearance: none;
   border: 0;
   border-radius: 10px;
   min-height: 34px;
+  min-width: 52px;
   padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: linear-gradient(170deg, var(--wood-light), var(--wood));
   color: #fff;
   font-size: 12px;
@@ -204,7 +210,6 @@ select {
 
 .config-help strong {
   font-weight: 800;
-}
   color: var(--ink);
 }
 
