@@ -631,10 +631,6 @@ th {
     grid-template-columns: 1fr 1fr;
   }
 
-  .name-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .name-row {
     grid-template-columns: 78px minmax(0, 1fr) auto;
   }

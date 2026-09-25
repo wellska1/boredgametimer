@@ -72,8 +72,8 @@ function renderNameFields() {
       <label for="player-name-${index}">Player ${index + 1}</label>
       <input id="player-name-${index}" data-player-name data-index="${index}" type="text" inputmode="text" autocomplete="off" maxlength="18" value="${escapeHtml(player.name)}">
       <div class="name-row-actions" aria-label="Reorder player ${index + 1}">
-        <button type="button" class="order-btn" data-move="up" data-index="${index}" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(player.name)} up">Move Up</button>
-        <button type="button" class="order-btn" data-move="down" data-index="${index}" ${index === players.length - 1 ? 'disabled' : ''} aria-label="Move ${escapeHtml(player.name)} down">Move Down</button>
+        <button type="button" class="order-btn" data-move="up" data-index="${index}" ${index === 0 ? 'disabled' : ''} aria-label="Move ${escapeHtml(player.name)} up">Up</button>
+        <button type="button" class="order-btn" data-move="down" data-index="${index}" ${index === players.length - 1 ? 'disabled' : ''} aria-label="Move ${escapeHtml(player.name)} down">Down</button>
       </div>
     </div>
   `).join('');
