@@ -1,0 +1,11 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/borerogu/public_html/
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -f index.html $DEPLOYPATH
+    - /bin/cp -f style.css $DEPLOYPATH
+    - /bin/cp -f app.js $DEPLOYPATH
+    - if [ -d assets ]; then /bin/cp -R assets $DEPLOYPATH; fi
+    - if [ -d img ]; then /bin/cp -R img $DEPLOYPATH; fi
+    - if [ -d images ]; then /bin/cp -R images $DEPLOYPATH; fi
