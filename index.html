@@ -16,8 +16,9 @@
       <div class="hero-top">
         <h1>Bored Game Timer</h1>
         <p>Track turn time like a worker placement board game.</p>
+        <button id="toggle-config" class="collapse-btn" aria-label="Toggle setup panel">−</button>
       </div>
-      <section class="config" aria-label="Timer setup">
+      <section class="config" id="config-section" aria-label="Timer setup">
         <label for="player-count">Number of timers</label>
         <div class="config-row">
           <select id="player-count" aria-label="Number of timers">
@@ -35,6 +36,12 @@
           <button id="apply-count" class="wood-btn secondary">Apply</button>
         </div>
         <div class="name-fields" id="name-fields" aria-label="Player names"></div>
+        <div class="config-help">
+          <p>• Click <strong>Start First Turn</strong> to begin timing</p>
+          <p>• Press <strong>Pause/Resume</strong> on the active timer to pause</p>
+          <p>• Click <strong>Select</strong> on any timer to switch players</p>
+          <p>• Click <strong>End All Timers</strong> when done</p>
+        </div>
       </section>
     </header>
 

@@ -41,6 +41,10 @@ body {
   box-shadow: 0 12px 30px #1022196b;
 }
 
+.hero-top {
+  position: relative;
+}
+
 .hero-top h1 {
   margin: 0;
   font-family: "Baloo 2", sans-serif;
@@ -55,10 +59,39 @@ body {
   font-size: 15px;
 }
 
+.collapse-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 28px;
+  font-weight: 300;
+  cursor: pointer;
+  color: #8b6f47;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .config {
   margin-top: 12px;
   display: grid;
   gap: 8px;
+  max-height: 1000px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+  opacity: 1;
+}
+
+.config.collapsed {
+  max-height: 0;
+  margin-top: 0;
+  opacity: 0;
 }
 
 .config label {
@@ -98,6 +131,25 @@ body {
   padding: 0 12px;
   font-size: 15px;
   font-weight: 700;
+}
+
+.config-help {
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(79, 74, 63, 0.06);
+  border-radius: 10px;
+  font-size: 13px;
+  color: #5a4d3c;
+  line-height: 1.5;
+}
+
+.config-help p {
+  margin: 6px 0;
+}
+
+.config-help strong {
+  font-weight: 800;
+}
   color: var(--ink);
 }
 

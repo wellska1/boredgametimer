@@ -6,6 +6,8 @@ const ui = {
   count: $('player-count'),
   apply: $('apply-count'),
   names: $('name-fields'),
+  toggleConfig: $('toggle-config'),
+  configSection: $('config-section'),
   next: $('next-turn'),
   endAll: $('end-all'),
   status: $('status'),
@@ -321,6 +323,10 @@ function startTick() {
 ui.apply.addEventListener('click', rebuildWithCount);
 ui.next.addEventListener('click', advanceTurn);
 ui.endAll.addEventListener('click', endAllTimers);
+ui.toggleConfig.addEventListener('click', () => {
+  ui.configSection.classList.toggle('collapsed');
+  ui.toggleConfig.textContent = ui.configSection.classList.contains('collapsed') ? '+' : '−';
+});
 
 createPlayers(Number(ui.count.value));
 renderNameFields();
