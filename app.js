@@ -353,6 +353,8 @@ ui.toggleConfig.addEventListener('click', () => {
 });
 
 // Initialize the app
+ui.configSection.classList.remove('collapsed');
+ui.toggleConfig.textContent = '−';
 createPlayers(Number(ui.count.value));
 renderNameFields();
 renderTimers();
