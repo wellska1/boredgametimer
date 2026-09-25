@@ -129,6 +129,88 @@ select {
   gap: 8px;
 }
 
+.order-builder {
+  margin-top: 8px;
+  padding: 10px;
+  border: 2px solid #d8b681;
+  border-radius: 12px;
+  background: #fbf3e3;
+}
+
+.order-builder h3 {
+  margin: 0;
+  font-size: 15px;
+  color: #5b4a34;
+  letter-spacing: 0.2px;
+}
+
+.order-builder p {
+  margin: 6px 0 10px;
+  font-size: 12px;
+  color: #6a5c49;
+  font-weight: 700;
+}
+
+.turn-buckets {
+  display: grid;
+  gap: 8px;
+}
+
+.turn-bucket {
+  border: 2px dashed #ccb181;
+  border-radius: 10px;
+  background: #fff7e9;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.turn-bucket.bucket-over {
+  border-color: #c72e2e;
+  box-shadow: 0 0 0 2px #c72e2e33;
+}
+
+.bucket-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #7a694f;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.turn-token {
+  border: 1px solid #c7af80;
+  border-radius: 10px;
+  min-height: 40px;
+  background: #f7ebd5;
+  color: #4f4a3f;
+  font-size: 14px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  width: 100%;
+  text-align: left;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.turn-token.token-selected {
+  border-color: #c72e2e;
+  box-shadow: 0 0 0 2px #c72e2e33;
+}
+
+.turn-token:active {
+  cursor: grabbing;
+}
+
+.token-meeple {
+  flex: 0 0 auto;
+}
+
 .name-row {
   display: grid;
   grid-template-columns: 78px 1fr;
@@ -273,42 +355,17 @@ select {
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  cursor: pointer;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
   touch-action: manipulation;
 }
 
-.timer-card.pressing {
-  box-shadow: 0 0 0 2px #5fa3d955;
-}
-
 .timer-card.dragging {
-  opacity: 0.35;
+  opacity: 0.55;
   cursor: grabbing;
 }
 
 .timer-card.drag-over {
   border-color: #5fa3d9;
   box-shadow: 0 0 0 2px #5fa3d944;
-}
-
-.drop-indicator {
-  height: 0;
-  border-top: 4px solid #c72e2e;
-  border-radius: 999px;
-  margin: 2px 0;
-  box-shadow: 0 0 0 1px #ffffffaa;
-}
-
-.drag-ghost {
-  position: fixed;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.92;
-  transform: scale(1.02);
-  box-shadow: 0 14px 28px #00000040;
 }
 
 .timer-card.active {

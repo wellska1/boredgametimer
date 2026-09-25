@@ -6,6 +6,7 @@ const ui = {
   count: $('player-count'),
   apply: $('apply-count'),
   names: $('name-fields'),
+  turnBuckets: $('turn-buckets'),
   toggleConfig: $('toggle-config'),
   configSection: $('config-section'),
   next: $('next-turn'),
@@ -32,15 +33,6 @@ let pausedAtMs = 0;
 let tickHandle = 0;
 let turnCount = 0;
 let turnHistory = [];
-let longPressTimer = 0;
-let holdSourceIndex = -1;
-let holdTargetIndex = -1;
-let holdStartX = 0;
-let holdStartY = 0;
-let reorderActive = false;
-let dragGhost = null;
-let dropIndicator = null;
-let timersSelectionGuarded = false;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -81,6 +73,7 @@ function renderNameFields() {
       const fallbackName = `Player ${index + 1}`;
       players[index].name = input.value.trim() || fallbackName;
       renderTimers();
+      renderTurnBuckets();
       if (ui.results && !ui.results.classList.contains('hidden')) {
         renderResults();
       }
@@ -92,6 +85,7 @@ function renderNameFields() {
       players[index].name = input.value.trim() || fallbackName;
       input.value = players[index].name;
       renderTimers();
+      renderTurnBuckets();
       if (ui.results && !ui.results.classList.contains('hidden')) {
         renderResults();
       }
@@ -139,7 +133,7 @@ function renderTimers() {
     const name = escapeHtml(p.name);
     const currentTurn = isActive ? p.turns + 1 : p.turns;
     return `
-      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};" data-index="${idx}" title="Hold for 1 second to reorder turn order">
+      <article class="timer-card ${isActive ? 'active' : ''}" style="--meeple:${p.color};">
         <div class="timer-row">
           <span class="player-chip"><span class="meeple" aria-hidden="true"></span>${name}</span>
           <div class="timer-info">
@@ -156,7 +150,22 @@ function renderTimers() {
   }).join('');
 
   ui.timers.innerHTML = cards;
-  wireTimerReorder();
+}
+
+function renderTurnBuckets() {
+  if (!ui.turnBuckets) return;
+
+  ui.turnBuckets.innerHTML = players.map((player, index) => `
+    <div class="turn-bucket" data-slot="${index}">
+      <div class="bucket-label">Turn ${index + 1}</div>
+      <button type="button" class="turn-token" draggable="true" data-slot="${index}" aria-label="Turn ${index + 1}: ${escapeHtml(player.name)}">
+        <span class="meeple token-meeple" style="--meeple:${player.color};" aria-hidden="true"></span>
+        ${escapeHtml(player.name)}
+      </button>
+    </div>
+  `).join('');
+
+  wireTurnBucketReorder();
 }
 
 function reorderPlayers(fromIndex, toIndex) {
@@ -172,209 +181,92 @@ function reorderPlayers(fromIndex, toIndex) {
     activeIndex = players.findIndex((player) => player.id === activePlayerId);
   }
 
+  renderTurnBuckets();
   renderTimers();
   renderResults();
   updateStatus(`Turn order updated. ${running ? `Current turn: ${players[activeIndex].name}` : 'Ready. Press Start First Turn.'}`);
 }
 
-function wireTimerReorder() {
-  const cards = [...ui.timers.querySelectorAll('.timer-card')];
-  if (cards.length === 0) return;
+function wireTurnBucketReorder() {
+  if (!ui.turnBuckets) return;
 
-  if (!timersSelectionGuarded) {
-    ui.timers.addEventListener('selectstart', (event) => {
-      event.preventDefault();
-    });
-    timersSelectionGuarded = true;
-  }
+  const tokens = [...ui.turnBuckets.querySelectorAll('.turn-token')];
+  const buckets = [...ui.turnBuckets.querySelectorAll('.turn-bucket')];
+  let dragFromSlot = -1;
+  let selectedSlot = -1;
 
-  const ensureDropIndicator = () => {
-    if (dropIndicator) return dropIndicator;
-    dropIndicator = document.createElement('div');
-    dropIndicator.className = 'drop-indicator';
-    return dropIndicator;
+  const clearBucketStates = () => {
+    buckets.forEach((bucket) => bucket.classList.remove('bucket-over'));
+    tokens.forEach((token) => token.classList.remove('token-selected'));
   };
 
-  const removeDropIndicator = () => {
-    if (dropIndicator && dropIndicator.parentNode) {
-      dropIndicator.parentNode.removeChild(dropIndicator);
-    }
+  const moveFromSlotToSlot = (fromSlot, toSlot) => {
+    if (!Number.isInteger(fromSlot) || !Number.isInteger(toSlot)) return;
+    if (fromSlot < 0 || toSlot < 0) return;
+    if (fromSlot >= players.length || toSlot >= players.length) return;
+    if (fromSlot === toSlot) return;
+    reorderPlayers(fromSlot, toSlot);
   };
 
-  const removeDragGhost = () => {
-    if (dragGhost && dragGhost.parentNode) {
-      dragGhost.parentNode.removeChild(dragGhost);
-    }
-    dragGhost = null;
-  };
-
-  const buildDragGhost = (card, x, y) => {
-    removeDragGhost();
-    const rect = card.getBoundingClientRect();
-    dragGhost = card.cloneNode(true);
-    dragGhost.classList.add('drag-ghost');
-    dragGhost.style.width = `${rect.width}px`;
-    dragGhost.style.left = `${x - rect.width / 2}px`;
-    dragGhost.style.top = `${y - rect.height / 2}px`;
-    document.body.appendChild(dragGhost);
-  };
-
-  const moveDragGhost = (x, y) => {
-    if (!dragGhost) return;
-    const rect = dragGhost.getBoundingClientRect();
-    dragGhost.style.left = `${x - rect.width / 2}px`;
-    dragGhost.style.top = `${y - rect.height / 2}px`;
-  };
-
-  const getDropSlotIndex = (pointerY) => {
-    const otherCards = [...ui.timers.querySelectorAll('.timer-card')]
-      .filter((card) => Number(card.dataset.index) !== holdSourceIndex);
-
-    if (otherCards.length === 0) return 0;
-
-    for (let slot = 0; slot < otherCards.length; slot += 1) {
-      const rect = otherCards[slot].getBoundingClientRect();
-      if (pointerY < rect.top + rect.height / 2) {
-        return slot;
+  tokens.forEach((token) => {
+    token.addEventListener('dragstart', (event) => {
+      dragFromSlot = Number(token.dataset.slot);
+      token.classList.add('token-selected');
+      if (event.dataTransfer) {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', String(dragFromSlot));
       }
-    }
-
-    return otherCards.length;
-  };
-
-  const placeDropIndicator = (slotIndex) => {
-    const indicator = ensureDropIndicator();
-    const otherCards = [...ui.timers.querySelectorAll('.timer-card')]
-      .filter((card) => Number(card.dataset.index) !== holdSourceIndex);
-
-    if (otherCards.length === 0) {
-      ui.timers.appendChild(indicator);
-      return;
-    }
-
-    if (slotIndex <= 0) {
-      ui.timers.insertBefore(indicator, otherCards[0]);
-      return;
-    }
-
-    if (slotIndex >= otherCards.length) {
-      const lastCard = otherCards[otherCards.length - 1];
-      ui.timers.insertBefore(indicator, lastCard.nextSibling);
-      return;
-    }
-
-    ui.timers.insertBefore(indicator, otherCards[slotIndex]);
-  };
-
-  const clearLongPressTimer = () => {
-    if (longPressTimer) {
-      window.clearTimeout(longPressTimer);
-      longPressTimer = 0;
-    }
-  };
-
-  const clearDragClasses = () => {
-    cards.forEach((card) => {
-      card.classList.remove('pressing');
-      card.classList.remove('dragging');
-      card.classList.remove('drag-over');
     });
-  };
 
-  const clearState = () => {
-    clearLongPressTimer();
-    clearDragClasses();
-    removeDragGhost();
-    removeDropIndicator();
-    holdSourceIndex = -1;
-    holdTargetIndex = -1;
-    holdStartX = 0;
-    holdStartY = 0;
-    reorderActive = false;
-  };
+    token.addEventListener('dragend', () => {
+      dragFromSlot = -1;
+      clearBucketStates();
+    });
 
-  const removeDocumentListeners = () => {
-    document.removeEventListener('pointermove', onPointerMove);
-    document.removeEventListener('pointerup', onPointerUp);
-    document.removeEventListener('pointercancel', onPointerCancel);
-  };
+    // Mobile fallback when drag-and-drop is unavailable.
+    token.addEventListener('click', (event) => {
+      event.stopPropagation();
+      clearBucketStates();
+      selectedSlot = Number(token.dataset.slot);
+      token.classList.add('token-selected');
+      updateStatus(`Selected ${players[selectedSlot].name}. Tap a turn bucket to place.`);
+    });
+  });
 
-  const highlightTargetAtPoint = (x, y) => {
-    clearDragClasses();
-    const sourceCard = ui.timers.querySelector(`.timer-card[data-index="${holdSourceIndex}"]`);
-    if (sourceCard) sourceCard.classList.add(reorderActive ? 'dragging' : 'pressing');
-
-    const slotIndex = getDropSlotIndex(y);
-    holdTargetIndex = slotIndex;
-    placeDropIndicator(slotIndex);
-    moveDragGhost(x, y);
-  };
-
-  const onPointerMove = (event) => {
-    if (holdSourceIndex < 0) return;
-
-    if (!reorderActive) {
-      const movedX = Math.abs(event.clientX - holdStartX);
-      const movedY = Math.abs(event.clientY - holdStartY);
-      if (movedX > 10 || movedY > 10) {
-        removeDocumentListeners();
-        clearState();
-      }
-      return;
-    }
-
-    event.preventDefault();
-    highlightTargetAtPoint(event.clientX, event.clientY);
-  };
-
-  const finishReorder = () => {
-    removeDocumentListeners();
-    const fromIndex = holdSourceIndex;
-    const toIndex = holdTargetIndex;
-    const shouldReorder = reorderActive && fromIndex >= 0 && toIndex >= 0 && fromIndex !== toIndex;
-    clearState();
-    if (shouldReorder) {
-      reorderPlayers(fromIndex, toIndex);
-    }
-  };
-
-  const onPointerUp = () => {
-    finishReorder();
-  };
-
-  const onPointerCancel = () => {
-    finishReorder();
-  };
-
-  cards.forEach((card) => {
-    card.addEventListener('contextmenu', (event) => {
+  buckets.forEach((bucket) => {
+    bucket.addEventListener('dragover', (event) => {
       event.preventDefault();
+      clearBucketStates();
+      bucket.classList.add('bucket-over');
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
     });
 
-    card.addEventListener('pointerdown', (event) => {
-      if (event.button !== undefined && event.button !== 0) return;
+    bucket.addEventListener('dragleave', () => {
+      bucket.classList.remove('bucket-over');
+    });
 
-      removeDocumentListeners();
-      clearState();
+    bucket.addEventListener('drop', (event) => {
+      event.preventDefault();
+      const toSlot = Number(bucket.dataset.slot);
+      const fromSlot = dragFromSlot >= 0
+        ? dragFromSlot
+        : Number(event.dataTransfer?.getData('text/plain'));
 
-      holdSourceIndex = Number(card.dataset.index);
-      holdTargetIndex = holdSourceIndex;
-      holdStartX = event.clientX;
-      holdStartY = event.clientY;
-      card.classList.add('pressing');
+      dragFromSlot = -1;
+      selectedSlot = -1;
+      clearBucketStates();
+      moveFromSlotToSlot(fromSlot, toSlot);
+    });
 
-      document.addEventListener('pointermove', onPointerMove);
-      document.addEventListener('pointerup', onPointerUp);
-      document.addEventListener('pointercancel', onPointerCancel);
-
-      longPressTimer = window.setTimeout(() => {
-        reorderActive = true;
-        card.classList.remove('pressing');
-        card.classList.add('dragging');
-        buildDragGhost(card, holdStartX, holdStartY);
-        highlightTargetAtPoint(holdStartX, holdStartY);
-        updateStatus('Reorder mode: drag to another player and release.');
-      }, 1000);
+    bucket.addEventListener('click', () => {
+      if (selectedSlot < 0) return;
+      const toSlot = Number(bucket.dataset.slot);
+      const fromSlot = selectedSlot;
+      selectedSlot = -1;
+      clearBucketStates();
+      moveFromSlotToSlot(fromSlot, toSlot);
     });
   });
 }
@@ -553,6 +445,7 @@ function rebuildWithCount() {
   turnCount = 0;
   updateStatus('Ready. Press Start First Turn.');
   renderNameFields();
+  renderTurnBuckets();
   renderTimers();
   renderResults();
 }
@@ -598,6 +491,7 @@ ui.configSection.classList.remove('collapsed');
 ui.toggleConfig.textContent = '−';
 createPlayers(Number(ui.count.value));
 renderNameFields();
+renderTurnBuckets();
 renderTimers();
 renderResults();
 startTick();
