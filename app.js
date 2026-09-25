@@ -38,6 +38,8 @@ let holdTargetIndex = -1;
 let holdStartX = 0;
 let holdStartY = 0;
 let reorderActive = false;
+let dragGhost = null;
+let dropIndicator = null;
 
 function createPlayers(count, previousNames = []) {
   players = [];
@@ -178,6 +180,84 @@ function wireTimerReorder() {
   const cards = [...ui.timers.querySelectorAll('.timer-card')];
   if (cards.length === 0) return;
 
+  const ensureDropIndicator = () => {
+    if (dropIndicator) return dropIndicator;
+    dropIndicator = document.createElement('div');
+    dropIndicator.className = 'drop-indicator';
+    return dropIndicator;
+  };
+
+  const removeDropIndicator = () => {
+    if (dropIndicator && dropIndicator.parentNode) {
+      dropIndicator.parentNode.removeChild(dropIndicator);
+    }
+  };
+
+  const removeDragGhost = () => {
+    if (dragGhost && dragGhost.parentNode) {
+      dragGhost.parentNode.removeChild(dragGhost);
+    }
+    dragGhost = null;
+  };
+
+  const buildDragGhost = (card, x, y) => {
+    removeDragGhost();
+    const rect = card.getBoundingClientRect();
+    dragGhost = card.cloneNode(true);
+    dragGhost.classList.add('drag-ghost');
+    dragGhost.style.width = `${rect.width}px`;
+    dragGhost.style.left = `${x - rect.width / 2}px`;
+    dragGhost.style.top = `${y - rect.height / 2}px`;
+    document.body.appendChild(dragGhost);
+  };
+
+  const moveDragGhost = (x, y) => {
+    if (!dragGhost) return;
+    const rect = dragGhost.getBoundingClientRect();
+    dragGhost.style.left = `${x - rect.width / 2}px`;
+    dragGhost.style.top = `${y - rect.height / 2}px`;
+  };
+
+  const getDropSlotIndex = (pointerY) => {
+    const otherCards = [...ui.timers.querySelectorAll('.timer-card')]
+      .filter((card) => Number(card.dataset.index) !== holdSourceIndex);
+
+    if (otherCards.length === 0) return 0;
+
+    for (let slot = 0; slot < otherCards.length; slot += 1) {
+      const rect = otherCards[slot].getBoundingClientRect();
+      if (pointerY < rect.top + rect.height / 2) {
+        return slot;
+      }
+    }
+
+    return otherCards.length;
+  };
+
+  const placeDropIndicator = (slotIndex) => {
+    const indicator = ensureDropIndicator();
+    const otherCards = [...ui.timers.querySelectorAll('.timer-card')]
+      .filter((card) => Number(card.dataset.index) !== holdSourceIndex);
+
+    if (otherCards.length === 0) {
+      ui.timers.appendChild(indicator);
+      return;
+    }
+
+    if (slotIndex <= 0) {
+      ui.timers.insertBefore(indicator, otherCards[0]);
+      return;
+    }
+
+    if (slotIndex >= otherCards.length) {
+      const lastCard = otherCards[otherCards.length - 1];
+      ui.timers.insertBefore(indicator, lastCard.nextSibling);
+      return;
+    }
+
+    ui.timers.insertBefore(indicator, otherCards[slotIndex]);
+  };
+
   const clearLongPressTimer = () => {
     if (longPressTimer) {
       window.clearTimeout(longPressTimer);
@@ -196,6 +276,8 @@ function wireTimerReorder() {
   const clearState = () => {
     clearLongPressTimer();
     clearDragClasses();
+    removeDragGhost();
+    removeDropIndicator();
     holdSourceIndex = -1;
     holdTargetIndex = -1;
     holdStartX = 0;
@@ -210,17 +292,14 @@ function wireTimerReorder() {
   };
 
   const highlightTargetAtPoint = (x, y) => {
-    const targetCard = document.elementFromPoint(x, y)?.closest('.timer-card');
     clearDragClasses();
-
     const sourceCard = ui.timers.querySelector(`.timer-card[data-index="${holdSourceIndex}"]`);
-    if (sourceCard) {
-      sourceCard.classList.add(reorderActive ? 'dragging' : 'pressing');
-    }
+    if (sourceCard) sourceCard.classList.add(reorderActive ? 'dragging' : 'pressing');
 
-    if (!targetCard) return;
-    targetCard.classList.add('drag-over');
-    holdTargetIndex = Number(targetCard.dataset.index);
+    const slotIndex = getDropSlotIndex(y);
+    holdTargetIndex = slotIndex;
+    placeDropIndicator(slotIndex);
+    moveDragGhost(x, y);
   };
 
   const onPointerMove = (event) => {
@@ -260,6 +339,10 @@ function wireTimerReorder() {
   };
 
   cards.forEach((card) => {
+    card.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+    });
+
     card.addEventListener('pointerdown', (event) => {
       if (event.button !== undefined && event.button !== 0) return;
 
@@ -280,6 +363,8 @@ function wireTimerReorder() {
         reorderActive = true;
         card.classList.remove('pressing');
         card.classList.add('dragging');
+        buildDragGhost(card, holdStartX, holdStartY);
+        highlightTargetAtPoint(holdStartX, holdStartY);
         updateStatus('Reorder mode: drag to another player and release.');
       }, 1000);
     });
