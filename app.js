@@ -254,20 +254,25 @@ function pctDelta(playerAvg, groupAvg) {
 function renderResults() {
   ui.results.classList.remove('hidden');
 
-  const totalAll = players.reduce((sum, p) => sum + p.totalMs, 0);
+  const playerTotals = players.map((player, index) => ({
+    player,
+    totalMs: player.totalMs + elapsedForPlayer(index)
+  }));
+
+  const totalAll = playerTotals.reduce((sum, entry) => sum + entry.totalMs, 0);
   const turnsAll = players.reduce((sum, p) => sum + p.turns, 0);
   const groupAvg = turnsAll > 0 ? totalAll / turnsAll : 0;
-  const maxTotal = Math.max(...players.map((p) => p.totalMs), 1);
+  const maxTotal = Math.max(...playerTotals.map((entry) => entry.totalMs), 1);
 
   ui.globalSummary.textContent = `Total game turn time: ${formatMs(totalAll)} across ${turnsAll} turns. Group average per turn: ${formatMs(groupAvg)}.`;
 
-  ui.bars.innerHTML = players.map((p) => {
-    const width = Math.max(8, Math.round((p.totalMs / maxTotal) * 100));
+  ui.bars.innerHTML = playerTotals.map(({ player, totalMs }) => {
+    const width = Math.max(8, Math.round((totalMs / maxTotal) * 100));
     return `
       <div class="bar-row">
-        <div class="bar-label">${escapeHtml(p.name)}</div>
+        <div class="bar-label">${escapeHtml(player.name)}</div>
         <div class="bar-track">
-          <div class="bar-fill" style="width:${width}%; background:${p.color};">${formatMs(p.totalMs)}</div>
+          <div class="bar-fill" style="width:${width}%; background:${player.color};">${formatMs(totalMs)}</div>
         </div>
       </div>
     `;
