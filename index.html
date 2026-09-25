@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2f5d4e">
+  <title>Bored Game Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero">
+      <div class="hero-top">
+        <h1>Bored Game Timer</h1>
+        <p>Track turn time like a worker placement board game.</p>
+      </div>
+      <section class="config" aria-label="Timer setup">
+        <label for="player-count">Number of timers</label>
+        <div class="config-row">
+          <select id="player-count" aria-label="Number of timers">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4" selected>4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+          </select>
+          <button id="apply-count" class="wood-btn secondary">Apply</button>
+        </div>
+        <div class="name-fields" id="name-fields" aria-label="Player names"></div>
+      </section>
+    </header>
+
+    <section class="board-zone" aria-label="Turn timers board">
+      <div class="controls">
+        <button id="next-turn" class="wood-btn primary">Start First Turn</button>
+        <button id="end-all" class="wood-btn danger">End All Timers</button>
+      </div>
+      <p id="status" class="status">Ready. Press Start First Turn.</p>
+      <div id="timers" class="timers" aria-live="polite"></div>
+    </section>
+
+    <section id="results" class="results hidden" aria-label="End of game comparison">
+      <h2>Turn Time Results</h2>
+      <p id="global-summary" class="global-summary"></p>
+      <div id="bars" class="bars"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th>Total Time</th>
+              <th>Turns</th>
+              <th>Avg Time/Turn</th>
+              <th>Vs Group Avg</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>
