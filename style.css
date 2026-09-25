@@ -186,11 +186,17 @@ body {
   box-shadow: 0 4px 0 #00000033;
   pointer-events: auto;
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   touch-action: manipulation;
 }
 
 .wood-btn:active {
   transform: translateY(1px);
+}
+
+.wood-btn:focus {
+  outline: none;
 }
 
 .wood-btn.secondary {
@@ -433,11 +439,17 @@ th {
   transition: transform 0.05s;
   width: 100%;
   pointer-events: auto;
+  -webkit-user-select: none;
+  user-select: none;
   touch-action: manipulation;
 }
 
 .timer-btn:active {
   transform: translateY(1px);
+}
+
+.timer-btn:focus {
+  outline: none;
 }
 
 .pause-btn {
