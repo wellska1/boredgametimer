@@ -81,6 +81,18 @@ select {
   filter: drop-shadow(0 3px 8px #00000021);
 }
 
+.brand.brand-text-fallback img {
+  display: none;
+}
+
+.brand-fallback-text {
+  font-family: "Baloo 2", sans-serif;
+  font-size: clamp(30px, 8vw, 42px);
+  line-height: 0.95;
+  letter-spacing: 0.2px;
+  color: #1c4d39;
+}
+
 .hero-top p {
   margin: 8px 0 0;
   color: var(--muted);

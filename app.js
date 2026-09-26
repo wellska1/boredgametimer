@@ -586,6 +586,44 @@ function startTick() {
   }, 100);
 }
 
+function wireBrandFallback() {
+  const brand = document.querySelector('.brand');
+  if (!brand) return;
+
+  const images = [...brand.querySelectorAll('img')];
+  if (images.length === 0) return;
+
+  const fallbackTitle = brand.dataset.fallback || 'Bored Game Timer';
+  let fallbackApplied = false;
+
+  const applyFallback = () => {
+    if (fallbackApplied) return;
+    fallbackApplied = true;
+    brand.classList.add('brand-text-fallback');
+    if (!brand.querySelector('.brand-fallback-text')) {
+      const text = document.createElement('span');
+      text.className = 'brand-fallback-text';
+      text.textContent = fallbackTitle;
+      brand.appendChild(text);
+    }
+  };
+
+  const validateImage = (img) => {
+    if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+      applyFallback();
+    }
+  };
+
+  images.forEach((img) => {
+    img.addEventListener('error', applyFallback);
+    if (img.complete) {
+      validateImage(img);
+    } else {
+      img.addEventListener('load', () => validateImage(img), { once: true });
+    }
+  });
+}
+
 // Attach event listeners
 ui.apply.addEventListener('click', rebuildWithCount);
 
@@ -621,3 +659,4 @@ renderNameFields();
 renderTimers();
 renderResults();
 startTick();
+wireBrandFallback();
